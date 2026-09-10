@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STEM LEADer Formula Air 氣動戰車 2026</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: "Microsoft JhengHei", "微軟正黑體", sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #004225, #123524);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh; /* 改为min-height而不是固定height */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* 改为顶部对齐 */
+        }
+        .container {
+            width: 90vw;
+            max-width: 900px;
+            background: rgba(12, 23, 48, 0.51);
+            color: #ababab;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.5);
+            overflow: hidden;
+        }
+        .header {
+            background: #0f1b3d;
+            color: white;
+            text-align: center;
+            padding: 10px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2rem;
+            letter-spacing: 3px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .header h2 {
+            margin: 10px 0 0;
+            font-size: 1.5rem;
+            font-weight: normal;
+        }
+        .ranking-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .ranking-table th {
+            background: #e84c3c;
+            color: white;
+            font-size: 1.5rem;
+            padding: 20px;
+            text-align: center;
+        }
+        .ranking-table td {
+            padding: 25px;
+            font-size: 1.6rem;
+            text-align: center;
+            border-bottom: 2px solid #262f44;
+        }
+        .ranking-table tr:nth-child(odd) {
+            background: #13233c;
+            color: #b4b4b4;
+        }
+        
+        .ranking-table tr:first-child td {
+            background: #0d1831;
+            font-weight: bold;
+            font-size: 1.6rem;
+            color: #f4c314;
+        }
+
+        .ranking-table tr:second-child td {
+            background: #0d1831;
+            font-weight: bold;
+            font-size: 1.6rem;
+            color: #f4c314;
+        }
+
+
+        .update-time {
+            text-align: right;
+            padding: 15px 30px;
+            background: #0f1b3d;
+            font-size: 1rem;
+            color: #afadad;
+        }
+        .gold { color: #d4af37; }
+        .silver { color: #cccccc; }
+        .bronze { color: #cd7f32; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <p style="text-align:center;"><img src="LEADerFA_2026.png" alt="Logo" height="100"></p>
+            <h2>親子組第一節 即時排名</h2>
+        </div>
+
+        <div class="update-time">
+            最後更新: <span id="last-update">載入中...</span>
+        </div>
+
+        <table class="ranking-table">
+            <thead>
+                <tr>
+                    <th width="20%">排名</th>
+                    <th width="40%">參賽者</th>
+                    <th width="40%">最佳成績</th>
+                </tr>
+            </thead>
+            <tbody id="ranking-body">
+                <!-- 數據會自動載入 -->
+            </tbody>
+        </table>
+        
+
+    </div>
+
+    <script>
+        // ===== 設定區 (只需修改這裡) =====
+        const GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1Kgwir0JIcrMQv0y3lYQ3ab_rO5SN0KxgBUWVEhpLbk8/edit?usp=sharing"; // 替換成您的表格網址
+        const SHEET_NAME = "round1"; // 工作表名稱
+        const REFRESH_TIME = 30000; // 30秒更新一次
+        // ==============================
+
+        async function fetchData() {
+            try {
+                const apiUrl = `https://opensheet.elk.sh/${GOOGLE_SHEET_URL.split('/d/')[1].split('/')[0]}/${SHEET_NAME}`;
+                const response = await axios.get(apiUrl);
+                
+                // 處理數據
+                const players = response.data
+                    .map(player => ({
+                        rank: player.排名,
+                        name: player.參賽者姓名,
+                        bestTime: player.最快時間
+                    }))
+                    .sort((a, b) => parseFloat(a.bestTime) - parseFloat(b.bestTime));
+                
+                updateTable(players);
+                updateTimestamp();
+            } catch (error) {
+                console.error("獲取數據失敗:", error);
+                document.getElementById("last-update").textContent = "更新失敗 - " + new Date().toLocaleTimeString('zh-TW');
+            }
+        }
+
+        function updateTable(players) {
+            const tbody = document.getElementById("ranking-body");
+            tbody.innerHTML = "";
+            
+            players.forEach((player, index) => {
+                const row = document.createElement("tr");
+                
+                // 添加獎牌顏色
+                let rankClass = "";
+                if (index === 0) rankClass = "gold";
+                else if (index === 1) rankClass = "silver";
+                else if (index === 2) rankClass = "bronze";
+                
+                row.innerHTML = `
+                    <td class="${rankClass}">${player.rank}</td>
+                   <td class="${rankClass}">${player.name}</td>
+                    <td class="${rankClass}">${player.bestTime} 秒</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateTimestamp() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('zh-TW');
+            document.getElementById("last-update").textContent = timeString;
+        }
+
+        // 初始載入 + 定時更新
+        fetchData();
+        setInterval(fetchData, REFRESH_TIME);
+    </script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>STEM LEADer Formula Air 氣動戰車 2026</title>
+    <script>
+        // 在這裡設置您的兩個網頁網址和停留時間（單位：毫秒，1000毫秒 = 1秒）
+        const slides = [
+            { url: "race_a.html", duration: 15000 }, // 第一個網站，顯示5秒
+            { url: "race_b.html", duration: 15000 }  // 第二個網站，顯示5秒
+        ];
+
+        function rotateSlides() {
+            let index = 0;
+            function showNextSlide() {
+                // 將iframe的來源切換到下一個網頁
+                document.getElementById('display-frame').src = slides[index].url;
+                // 計算下一個索引，如果到最後就回到第一個
+                index = (index + 1) % slides.length;
+                // 設定計時器，在指定時間後切換下一頁
+                setTimeout(showNextSlide, slides[index].duration);
+            }
+            // 開始循環
+            showNextSlide();
+        }
+    </script>
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+        #display-frame { width: 100vw; height: 100vh; border: none; }
+    </style>
+</head>
+<body onload="rotateSlides()">
+    <iframe id="display-frame" src=""></iframe>
+</body>
+</html>
